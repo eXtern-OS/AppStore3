@@ -24,7 +24,7 @@ func Search(q query.Query) []app.ExportedApp {
 
 	var res []chan []app.App
 
-	wg.Add(1)
+	wg.Add(t)
 	var exChan = make(chan []app.App, 1)
 
 	res = append(res, exChan)
@@ -32,14 +32,12 @@ func Search(q query.Query) []app.ExportedApp {
 	go extern.Search(q, exChan, &wg)
 
 	if q.SnapEnabled {
-		wg.Add(1)
 		var snapChan = make(chan []app.App, 1)
 		res = append(res, snapChan)
 		// add snap search
 	}
 
 	if q.FlatpakEnabled {
-		wg.Add(1)
 		var flatChan = make(chan []app.App, 1)
 		res = append(res, flatChan)
 		// add flat search
@@ -47,11 +45,11 @@ func Search(q query.Query) []app.ExportedApp {
 
 	wg.Wait()
 
-	var results []app.App
+	var results []app.ExportedApp
 
 	for _, c := range res {
-		results = append(results, <-c...)
+		results = append(results, app.ExportApps(<-c)...)
 	}
 
-	return app.ExportApps(results)
+	return results
 }
