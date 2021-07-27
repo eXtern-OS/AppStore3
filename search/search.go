@@ -1,9 +1,9 @@
 package search
 
 import (
-	"extenos.io/AppStore3/app"
-	"extenos.io/AppStore3/apps/extern"
-	"extenos.io/AppStore3/query"
+	"externos.io/AppStore3/apps/extern"
+	"externos.io/AppStore3/query"
+	"github.com/eXtern-OS/common/app"
 	"sync"
 )
 
@@ -29,7 +29,7 @@ func Search(q query.Query) []app.ExportedApp {
 
 	res = append(res, exChan)
 
-	go extern.Search(q, exChan, &wg)
+	go extern.Search(q, exChan, &wg, targets)
 
 	if q.SnapEnabled {
 		var snapChan = make(chan []app.App, 1)
