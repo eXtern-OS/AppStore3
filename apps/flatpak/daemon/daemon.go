@@ -42,13 +42,19 @@ func parseData(income []byte) ([]app.Flatpak, error) {
 
 func updateApps() {
 
+	go log.Println("Started updateApps")
+
 	d, err := getData()
 	if err != nil {
 		go beatrix.SendError("Failed to make request: "+err.Error(), "flatpak.daemon.updateApps")
 		return
 	}
 
+	go log.Println("Got data")
+
 	apps, err := parseData(d)
+
+	go log.Println("Parsed data")
 
 	if err != nil {
 		go beatrix.SendError("Failed to parse apps response: "+err.Error(), "flatpak.daemon.updateApps")
@@ -73,10 +79,14 @@ func updateApps() {
 		}
 	}
 	status.Mutex.Unlock()
+
+	go log.Println("Finished update apps")
+
 	return
 }
 
 func StartDaemon() {
+	log.SetPrefix("[FLATPAK/DAEMON] ")
 	updateApps()
 	for sleep() {
 		updateApps()
