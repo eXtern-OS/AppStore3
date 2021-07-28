@@ -11,5 +11,6 @@ type Query struct {
 	SnapEnabled    bool   `json:"snap_enabled"`
 	FlatpakEnabled bool   `json:"flatpak_enabled"`
 	Results        int    `json:"results"` // Default 100
+	NoCache        bool   `json:"no_cache"`
 	Params         Params `json:"params"`
 }

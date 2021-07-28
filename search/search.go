@@ -2,6 +2,7 @@ package search
 
 import (
 	"externos.io/AppStore3/apps/extern"
+	"externos.io/AppStore3/apps/snap"
 	"externos.io/AppStore3/query"
 	"github.com/eXtern-OS/common/app"
 	"sync"
@@ -34,7 +35,7 @@ func Search(q query.Query) []app.ExportedApp {
 	if q.SnapEnabled {
 		var snapChan = make(chan []app.App, 1)
 		res = append(res, snapChan)
-		// add snap search
+		go snap.Search(q.Query, snapChan, &wg, targets)
 	}
 
 	if q.FlatpakEnabled {
