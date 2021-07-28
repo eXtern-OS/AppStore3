@@ -11,7 +11,14 @@ import (
 const BaseURL = "https://api.snapcraft.io/v2/snaps/find?fields=media,description,publisher,title,version&q="
 
 func getData(param string) ([]byte, error) {
-	res, err := http.Get(BaseURL + html.EscapeString(param))
+
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("GET", BaseURL+html.EscapeString(param), nil)
+
+	req.Header.Set("Snap-Device-Series", "16")
+
+	res, err := client.Do(req)
 
 	if err != nil {
 		return nil, err

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"externos.io/AppStore3/apps/flatpak/daemon"
-	"github.com/eXtern-OS/common/config"
-	"github.com/eXtern-OS/common/db"
+	"externos.io/AppStore3/apps/snap"
+	"fmt"
+	"github.com/eXtern-OS/common/app"
+	"sync"
 )
 
 type Config struct {
@@ -11,12 +12,19 @@ type Config struct {
 }
 
 func main() {
-	var c Config
-	config.ReadConfig(&c)
+	//var c Config
+	//config.ReadConfig(&c)
 
-	db.Init(c.Mongo)
+	//db.Init(c.Mongo)
 
-	daemon.Init()
+	c := make(chan []app.App, 1)
 
-	daemon.StartDaemon()
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go snap.Search("spotify", c, &wg, 5)
+
+	wg.Wait()
+
+	fmt.Println(app.ExportApps(<-c))
 }
