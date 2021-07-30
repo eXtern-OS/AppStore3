@@ -28,7 +28,7 @@ func getData(param string) ([]byte, error) {
 }
 
 func parseData(income []byte) ([]app.Snap, error) {
-	var res []app.Snap
+	var res app.SnapResults
 
-	return res, json.Unmarshal(income, &res)
+	return res.Results, json.Unmarshal(income, &res)
 }
