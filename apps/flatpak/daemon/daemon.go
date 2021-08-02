@@ -62,6 +62,8 @@ func updateApps() {
 		return
 	}
 
+	status.ReasonableLimit = len(apps)
+
 	var insertData []interface{}
 
 	// Wtf

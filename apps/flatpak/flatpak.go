@@ -9,10 +9,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
-	"sync"
 )
 
-func Search(q string, res chan []app.App, wg *sync.WaitGroup, limit int) {
+func Search(q string, res chan []app.App, limit int) {
 	var results []app.App
 
 	filter := bson.D{
@@ -30,11 +29,12 @@ func Search(q string, res chan []app.App, wg *sync.WaitGroup, limit int) {
 	} else if err == mongo.ErrNoDocuments {
 		log.Println("No entries for the query:", q)
 	} else {
-		for i := 0; cur != nil && cur.Next(context.TODO()) && i < limit; i++ {
+		for i := 0; cur != nil && cur.Next(context.TODO()) && i < limit && i < status.ReasonableLimit; i++ {
 			var f app.Flatpak
 			if err = cur.Decode(&f); err != nil {
 				go beatrix.SendError("Failed to decode value: "+err.Error(), "flatpak.Search")
 				log.Println("Failed to decode value: " + err.Error())
+				i--
 			} else {
 				results = append(results, &f)
 			}
@@ -43,5 +43,4 @@ func Search(q string, res chan []app.App, wg *sync.WaitGroup, limit int) {
 	status.Mutex.Unlock()
 
 	res <- results
-	wg.Done()
 }
