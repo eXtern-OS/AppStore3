@@ -7,6 +7,7 @@ import (
 	"externos.io/AppStore3/query"
 	"github.com/eXtern-OS/common/app"
 	"github.com/eXtern-OS/common/utils"
+	"sync"
 )
 
 func Search(q query.Query) []app.ExportedApp {
@@ -14,24 +15,31 @@ func Search(q query.Query) []app.ExportedApp {
 
 	targets := q.Results / t
 
-	res := make(chan []app.App, 3)
+	var wg, wge sync.WaitGroup
+	wg.Add(t)
+	wge.Add(1)
 
-	go extern.Search(q, res, targets)
+	e := newEliminator()
+
+	res := make(chan *app.ExportedApp)
+
+	go extern.Search(q, res, targets, &wg)
 
 	if q.SnapEnabled {
-		go snap.Search(q.Query, res, targets)
+		go snap.Search(q.Query, res, targets, &wg)
 	}
 
 	if q.FlatpakEnabled {
-		go flatpak.Search(q.Query, res, targets)
+		go flatpak.Search(q.Query, res, targets, &wg)
 	}
 
-	var results []app.ExportedApp
+	go e.start(res, &wge)
 
-	for i := 0; i < 3; i++ {
-		results = append(results, app.ExportApps(<-res)...)
-	}
+	wg.Wait()
+
 	close(res)
 
-	return results
+	wge.Wait()
+
+	return e.get()
 }

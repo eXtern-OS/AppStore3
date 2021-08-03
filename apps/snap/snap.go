@@ -4,12 +4,11 @@ import (
 	beatrix "github.com/eXtern-OS/Beatrix"
 	"github.com/eXtern-OS/common/app"
 	"log"
+	"sync"
 )
 
-func Search(q string, res chan []app.App, limit int) {
+func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
 	d, err := getData(q)
-
-	var apps []app.App
 
 	if err != nil {
 		go beatrix.SendError("Failed to get data: "+err.Error(), "apps.snap.Search")
@@ -26,11 +25,13 @@ func Search(q string, res chan []app.App, limit int) {
 			}
 
 			for _, x := range snapApps {
-				apps = append(apps, &x)
+				m := x.Export()
+				res <- &m
 			}
 		}
 	}
 
-	res <- apps
+	wg.Done()
+
 	return
 }

@@ -10,10 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"sync"
 )
 
-func Search(q query.Query, res chan []app.App, limit int) {
-	var resApps []app.App
+func Search(q query.Query, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
 	dx := utils.SumBtoI(q.Params.EnableFree, q.Params.EnablePaid, q.Params.EnableSubscription)
 	if dx > 0 {
 		var filter bson.A
@@ -62,10 +62,11 @@ func Search(q query.Query, res chan []app.App, limit int) {
 					go beatrix.SendError("Failed to decode document: "+err.Error(), "extern.Search")
 					i--
 				} else {
-					resApps = append(resApps, &a)
+					m := a.Export()
+					res <- &m
 				}
 			}
 		}
 	}
-	res <- resApps
+	wg.Done()
 }

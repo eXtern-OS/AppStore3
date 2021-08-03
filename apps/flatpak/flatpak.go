@@ -9,10 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"sync"
 )
 
-func Search(q string, res chan []app.App, limit int) {
-	var results []app.App
+func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
 
 	filter := bson.D{
 		{"$or", bson.A{
@@ -36,11 +36,11 @@ func Search(q string, res chan []app.App, limit int) {
 				log.Println("Failed to decode value: " + err.Error())
 				i--
 			} else {
-				results = append(results, &f)
+				m := f.Export()
+				res <- &m
 			}
 		}
 	}
 	status.Mutex.Unlock()
-
-	res <- results
+	wg.Done()
 }

@@ -1,13 +1,15 @@
 package main
 
 import (
+	"externos.io/AppStore3/apps/extern"
 	"externos.io/AppStore3/apps/flatpak"
 	"externos.io/AppStore3/apps/flatpak/daemon"
+	"externos.io/AppStore3/query"
+	"externos.io/AppStore3/search"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/eXtern-OS/common/app"
 	"github.com/eXtern-OS/common/config"
 	"github.com/eXtern-OS/common/db"
-	"sync"
+	"time"
 )
 
 type Config struct {
@@ -24,14 +26,22 @@ func main() {
 
 	flatpak.Init()
 
-	res := make(chan []app.App, 1)
+	extern.Init()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	time.Sleep(1 * time.Minute)
 
-	go flatpak.Search("Spotify", res, &wg, 5)
+	res := search.Search(query.Query{
+		Query:          "Spotify",
+		SnapEnabled:    true,
+		FlatpakEnabled: true,
+		Results:        130,
+		NoCache:        false,
+		Params: query.Params{
+			EnableFree:         true,
+			EnablePaid:         true,
+			EnableSubscription: true,
+		},
+	})
 
-	wg.Wait()
-
-	spew.Dump(app.ExportApps(<-res))
+	spew.Dump(res)
 }
