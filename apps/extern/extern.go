@@ -16,7 +16,8 @@ import (
 func Search(q query.Query, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
 	dx := utils.SumBtoI(q.Params.EnableFree, q.Params.EnablePaid, q.Params.EnableSubscription)
 	if dx > 0 {
-		var filter bson.A
+		var filter = bson.M{}
+		var f1 = bson.M{}
 		if dx > 2 {
 			var arr bson.A
 			if q.Params.EnableFree {
@@ -28,22 +29,22 @@ func Search(q query.Query, res chan *app.ExportedApp, limit int, wg *sync.WaitGr
 			if q.Params.EnableSubscription {
 				arr = append(arr, bson.M{"payment": 2})
 			}
-			filter = append(filter, bson.D{{"$or", arr}})
+			f1["$or"] = arr
 		} else {
 			if q.Params.EnableFree {
-				filter = append(filter, bson.M{"payment": 0})
+				f1["payment"] = 0
 			} else if q.Params.EnablePaid {
-				filter = append(filter, bson.M{"payment": 1})
+				f1["payment"] = 1
 			} else if q.Params.EnableSubscription {
-				filter = append(filter, bson.M{"payment": 2})
+				f1["payment"] = 2
 			}
 		}
 
-		filter = append(filter, bson.D{
+		filter["$and"] = bson.A{f1, bson.D{
 			{"$or", bson.A{
 				bson.D{{"name", primitive.Regex{Pattern: q.Query, Options: ""}}},
 				bson.D{{"description", primitive.Regex{Pattern: q.Query, Options: ""}}},
-			}}})
+			}}}}
 
 		cur, err := dbc.FindMany(filter, DatabaseName, CollectionName)
 		if err != nil {
