@@ -69,5 +69,6 @@ func Search(q query.Query, res chan *app.ExportedApp, limit int, wg *sync.WaitGr
 			}
 		}
 	}
+	//log.Println("Extern finished")
 	wg.Done()
 }

@@ -11,6 +11,7 @@ import (
 )
 
 func Search(q query.Query) []app.ExportedApp {
+	//log.Println("Got query")
 	t := 1 + utils.SumBtoI(q.SnapEnabled, q.FlatpakEnabled)
 
 	targets := q.Results / t

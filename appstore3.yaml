@@ -1,0 +1,129 @@
+openapi: 3.0.1
+info:
+  title: AppStore3
+  description: This is API specs for our AppStore3 project server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://store.externos.io/api
+tags:
+- name: search
+  description: Specs for search
+paths:
+  /search:
+    post:
+      tags:
+      - search
+      summary: Search for desired apps
+      operationId: search
+      requestBody:
+        description: Search query that needs to be processed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Query'
+        required: true
+      responses:
+        200:
+          description: All fine, here you will get an array of ExportedApp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        400:
+          description: "You passed bad JSON"
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/ApiResponse'
+              example:
+                msg: "Failed to parse JSON: bad request"
+          
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    Params:
+      type: object
+      properties:
+        enable_free:
+          type: boolean
+        enable_paid:
+          type: boolean
+        enable_subscription:
+          type: boolean
+      xml:
+        name: Params
+    Query:
+      required:
+      - flatpak_enabled
+      - no_cache
+      - params
+      - query
+      - results
+      - snap_enabled
+      type: object
+      properties:
+        query:
+          type: string
+        snap_enabled:
+          type: boolean
+        flatpak_enabled:
+          type: boolean
+        results:
+          type: integer
+          example: 100
+        no_cache:
+          type: boolean
+        params:
+          $ref: '#/components/schemas/Params'
+      xml:
+        name: Query
+    ApiResponse:
+      type: object
+      properties:
+        msg:
+          type: object
+    Package:
+      type: object
+      properties:
+        published:
+          type: integer
+        version:
+          type: string
+        url:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+    ExportedApp:
+      type: object
+      properties:
+        app_type:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        stats_available:
+          type: string
+        stats:
+          type: object
+        icon_url:
+          type: string
+        header_url:
+          type: string
+        screenshots:
+          type: array
+          items:
+            type: string
+        publisher:
+          type: object
+        package_name:
+          type: string
+        package:
+          $ref: '#/components/schemas/Package'

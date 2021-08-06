@@ -42,5 +42,6 @@ func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) 
 		}
 	}
 	status.Mutex.Unlock()
+	//log.Println("Flatpak finished")
 	wg.Done()
 }
