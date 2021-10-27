@@ -29,6 +29,7 @@ func Search(q query.Query) []app.ExportedApp {
 
 	res := make(chan *app.ExportedApp)
 
+	// eXtern apps are ALWAYS included
 	go extern.Search(q, res, targets, &wg)
 
 	// starting chosen daemons
@@ -40,7 +41,7 @@ func Search(q query.Query) []app.ExportedApp {
 		go flatpak.Search(q.Query, res, targets, &wg)
 	}
 
-	// eXtern apps are ALWAYS included
+	// starting eliminator
 	go e.start(res, &wge)
 
 	wg.Wait()
