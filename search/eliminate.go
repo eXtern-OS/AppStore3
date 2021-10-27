@@ -5,6 +5,12 @@ import (
 	"sync"
 )
 
+
+/* Eliminator provides smart queue which removes (eliminates) duplicates. The priority is following:
+	* eXtern OS apps
+	* Flatpak apps
+	* Snap apps
+*/
 type eliminator struct {
 	waiting int
 
@@ -17,6 +23,7 @@ type eliminator struct {
 	apps     map[string]*app.ExportedApp
 }
 
+// check provides method to check whether appName has already been seen
 func (e *eliminator) check(appName string) bool {
 	e.mutexMap.RLock()
 	_, ok := e.apps[appName]
@@ -24,12 +31,17 @@ func (e *eliminator) check(appName string) bool {
 	return ok
 }
 
+// add adds app into map
 func (e *eliminator) add(app *app.ExportedApp) {
 	e.mutexMap.Lock()
 	e.apps[app.Name] = app
 	e.mutexMap.Unlock()
 }
 
+/* start is a core function. You pass a chan that consumes apps and a waitgroup for snap queries
+ * Once we are done with all apps incoming, we can begin sorting them
+ * Therefore, we launch flatpak queue (by releasing locker)
+*/
 func (e *eliminator) start(income chan *app.ExportedApp, wg *sync.WaitGroup) {
 	go e.queueFlatDaemon()
 	go e.queueSnapDaemon(wg)
@@ -53,6 +65,8 @@ func (e *eliminator) start(income chan *app.ExportedApp, wg *sync.WaitGroup) {
 	e.queueFlatLocked = false
 }
 
+
+// checkAndAdd adds apps if name wasn't met before. This was done to avoid situations when snap or flatpak apps erase eXtern OS
 func (e *eliminator) checkAndAdd(income []*app.ExportedApp) {
 	for _, x := range income {
 		if !e.check(x.Name) {
@@ -61,6 +75,8 @@ func (e *eliminator) checkAndAdd(income []*app.ExportedApp) {
 	}
 }
 
+
+// queueSnapDaemon checks and adds apps from the queue to the result
 func (e *eliminator) queueSnapDaemon(wg *sync.WaitGroup) {
 	for e.queueSnapLocked {
 
@@ -71,6 +87,8 @@ func (e *eliminator) queueSnapDaemon(wg *sync.WaitGroup) {
 	wg.Done()
 }
 
+
+// queueFlatDaemon checks and adds apps from the flatpak queue. After that, launches corresponding function for snap by releasing snap locker
 func (e *eliminator) queueFlatDaemon() {
 	for e.queueFlatLocked {
 
@@ -81,6 +99,8 @@ func (e *eliminator) queueFlatDaemon() {
 	e.queueSnapLocked = false
 }
 
+
+// get provides method to extract all sorted apps
 func (e *eliminator) get() []app.ExportedApp {
 	var res []app.ExportedApp
 
@@ -92,6 +112,8 @@ func (e *eliminator) get() []app.ExportedApp {
 	return res
 }
 
+
+// newEliminator creates new eliminator. Default params are understandable
 func newEliminator() eliminator {
 	var e = eliminator{
 		queueFlatLocked: true,
