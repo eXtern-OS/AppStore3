@@ -7,6 +7,8 @@ import (
 	"sync"
 )
 
+
+// CacheMap provides the structure to work with caches
 type CacheMap struct {
 	Mutex sync.Mutex
 	Map   map[string]bool
@@ -37,6 +39,7 @@ func init() {
 }
 
 func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
+	// Check if cmap already has this request, if it has, try to load it and provide these results
 	if cmap.get(q) {
 		if apps, err := LoadFromCache(q); err != nil {
 			go beatrix.SendError("Failed to load from cache: "+err.Error(), "snap.Search")
@@ -54,18 +57,24 @@ func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) 
 		}
 	}
 
+	// otherwise getting data
 	d, err := getData(q)
 
 	if err != nil {
 		go beatrix.SendError("Failed to get data: "+err.Error(), "apps.snap.Search")
 		go log.Println("Failed to get data: " + err.Error())
 	} else {
+		// Trying to parse it
 		snapApps, err := parseData(d)
 
 		if err != nil {
 			go beatrix.SendError("Failed to parse data: "+err.Error(), "apps.snap.Search")
 			go log.Println(err)
 		} else {
+			// Trying to add to cache
+			go AddToCache(q, snapApps)
+			
+			
 			if len(snapApps) > limit {
 				snapApps = snapApps[:(limit - 1)]
 			}
@@ -74,11 +83,8 @@ func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) 
 				m := x.Export()
 				res <- &m
 			}
+			
 		}
-
-		go AddToCache(q, snapApps)
 	}
-
-	//log.Println("Snap finished")
 	wg.Done()
 }
