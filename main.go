@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// Config provides configuration data for services
 type Config struct {
 	Mongo            string `json:"mongo"`
 	BeatrixToken     string `json:"beatrix_token"`
@@ -24,6 +25,7 @@ func main() {
 	var c Config
 	config.ReadConfig(&c)
 
+	// Necessary inits
 	db.Init(c.Mongo)
 	daemon.Init()
 	flatpak.Init()
