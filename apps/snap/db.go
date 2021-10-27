@@ -1,3 +1,7 @@
+/*
+	We use DB to cache results, therefore we will lower load on the snapcraft servers and our servers as well.
+	Code for this is pretty **common**
+*/
 package snap
 
 import (
