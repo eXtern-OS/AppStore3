@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+
+// handleSearch consumes search query and returns either error code or results
 func handleSearch(c *gin.Context) {
 	var q query.Query
 	if err := c.BindJSON(&q); err != nil {
