@@ -12,8 +12,10 @@ import (
 	"sync"
 )
 
-func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
 
+// Search searches in our DB, where we store data from flathub
+func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) {
+	// We create a filter which matches either name or description
 	filter := bson.D{
 		{"$or", bson.A{
 			bson.D{{"name", primitive.Regex{Pattern: q, Options: ""}}},
@@ -21,6 +23,8 @@ func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) 
 		}},
 	}
 
+	// Locking mutex to avoid that unfortunate situation when we are searching while updating db
+	// Consider using traditional for ;; lock
 	status.Mutex.Lock()
 	cur, err := dbc.FindMany(filter, DatabaseName, CollectionName)
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -29,6 +33,7 @@ func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) 
 	} else if err == mongo.ErrNoDocuments {
 		log.Println("No entries for the query:", q)
 	} else {
+		// See? He did the trick again! (see extern and snap search)
 		for i := 0; cur != nil && cur.Next(context.TODO()) && i < limit && i < status.ReasonableLimit; i++ {
 			var f app.Flatpak
 			if err = cur.Decode(&f); err != nil {
@@ -41,7 +46,7 @@ func Search(q string, res chan *app.ExportedApp, limit int, wg *sync.WaitGroup) 
 			}
 		}
 	}
+	// unlocking mutex
 	status.Mutex.Unlock()
-	//log.Println("Flatpak finished")
 	wg.Done()
 }
