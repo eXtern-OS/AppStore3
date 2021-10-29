@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+// We update 12 times / day
 func sleep() bool {
 	time.Sleep(2 * time.Hour)
 
@@ -24,6 +25,7 @@ func sleep() bool {
 
 const AppsURL = "https://flathub.org/api/v1/apps"
 
+// obviously, it gets data from the URL
 func getData() ([]byte, error) {
 	res, err := http.Get(AppsURL)
 
@@ -34,6 +36,8 @@ func getData() ([]byte, error) {
 	return ioutil.ReadAll(res.Body)
 }
 
+
+// The same thing here
 func parseData(income []byte) ([]app.Flatpak, error) {
 	var res []app.Flatpak
 
@@ -65,8 +69,6 @@ func updateApps() {
 	status.ReasonableLimit = len(apps)
 
 	var insertData []interface{}
-
-	// Wtf
 
 	for _, x := range apps {
 		insertData = append(insertData, x)
