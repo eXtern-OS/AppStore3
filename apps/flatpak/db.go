@@ -1,3 +1,4 @@
+// absolutely standart db code, nothing to see here
 package flatpak
 
 import (
