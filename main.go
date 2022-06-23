@@ -37,5 +37,5 @@ func main() {
 
 	r := gin.Default()
 	server.Init(r)
-	log.Panicln(r.Run())
+	log.Panicln(r.Run(":8080"))
 }
