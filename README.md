@@ -1,6 +1,6 @@
 # AppStore3
 
-Here is the code for the AppStore3 server app. Currently its not deployed, but  already tested.
+Here is the code for the AppStore3 server app.
 
 To get it working you will need config.json which will provide secrets for Mongo, discord monitoring and so on...
 
